@@ -2,7 +2,7 @@ const productService = require('../services/product.service');
 
 // Obtener todos los productos
 const getAllProducts = async (req, res) => {
-    const response = await productService.getAllProducts();
+    const response = await productService.getAllProducts(req);
     res.status(response.statusCode).json({ message: response.message, data: response.data });
 };
 

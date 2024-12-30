@@ -1,9 +1,19 @@
 const Product = require('../models/product.model');
 
 // Obtener todos los productos
-const getAllProducts = async () => {
+const getAllProducts = async (req) => {
     try {
-        const products = await Product.find();
+        // Obtener el parámetro de consulta
+        const { categoryId } = req.query;
+
+        // Construir un filtro dinámico
+        const filter = {};
+        if (categoryId) {
+            filter.categoryId = categoryId;
+        }
+
+        // Consultar los productos con el filtro
+        const products = await Product.find(filter);
         return {
             statusCode: 200,
             message: 'Productos obtenidos correctamente',
