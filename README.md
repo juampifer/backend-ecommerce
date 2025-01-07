@@ -65,6 +65,13 @@ Iniciar el servidor
 - **PUT** `/products/:id`: Actualiza un producto.
 - **DELETE** `/products/:id`: Elimina un producto.
 
+### Cart
+- **GET** `/cart/:userId`: Obtiene el carrito del usuario.
+- **POST** `/cart/:userId`: Agrega un item al carrito.
+- **PUT** `/cart/:userId`: Actualiza la cantidad de un ítem.
+- **DELETE** `/cart/:userId`: Elimina un producto.
+- **DELETE** `/cart/:userId/clearCart`: Limpia el carrito.
+
 ## Estructura del Proyecto
 
 ```plaintext
