@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const productRoutes = require('../routes/product.routes');
+const cartRoutes = require('../routes/cart.routes');
 
 // Configurar el servidor
 const server = express();
@@ -22,5 +23,6 @@ server.get('/', (request, response) => {
 
 // Ejecutar los routers
 server.use('/products', productRoutes);
+server.use('/cart', cartRoutes )
 
 module.exports = server;
