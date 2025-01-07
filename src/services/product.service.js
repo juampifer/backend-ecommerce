@@ -79,7 +79,7 @@ const updateProduct = async (id, productData) => {
                 message: 'Producto no encontrado',
             };
         }
-        const updatedProduct = await Product.findByIdAndUpdate(id, productData, { new: true });
+        const updatedProduct = await Product.findByIdAndUpdate(id, productData);
         return {
             statusCode: 200,
             message: 'Producto actualizado correctamente',
