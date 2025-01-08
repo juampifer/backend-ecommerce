@@ -1,42 +1,56 @@
 const Cart = require('../models/cart.model');
 const Product = require('../models/product.model');
+const { v4: uuidv4 } = require('uuid');
 
 /**
  * Formatea el carrito para que sea compatible con el frontend.
- * Convierte `_id` en `id` y ajusta los detalles del producto.
  */
 const formatCart = (cart) => {
-    const formattedCart = {
-        userId: cart.userId.toString(),
+    return {
+        id: cart._id.toString(),
+        userId: cart.userId?.toString() || null,
         items: cart.items.map((item) => ({
-            id: item.id._id.toString(), // Cambiar `_id` a `id`
-            categoryId: item.id.categoryId?.toString(), // Incluye `categoryId` si existe
+            id: item.id._id.toString(),
+            categoryId: item.id.categoryId?.toString(),
             name: item.id.name,
             description: item.id.description,
             price: item.id.price,
             offerPrice: item.id.offerPrice,
             image: item.id.image,
-            quantity: item.quantity, // Incluye la cantidad
+            quantity: item.quantity,
         })),
         createdAt: cart.createdAt,
         updatedAt: cart.updatedAt,
     };
-    return formattedCart;
 };
 
 /**
- * Obtiene el carrito de un usuario.
+ * Encuentra o crea un carrito para un identificador (userId o cartId).
  */
-const getCart = async (userId) => {
-    try {
-        const cart = await Cart.findOne({ userId }).populate('items.id');
-        if (!cart) {
-            return {
-                statusCode: 404,
-                message: 'Carrito no encontrado',
-            };
-        }
+const findOrCreateCart = async (identifier) => {
+    const query = identifier.userId ? { userId: identifier.userId } : { _id: identifier.cartId };
 
+    let cart = await Cart.findOne(query).populate('items.id');
+
+    if (!cart) {
+        cart = new Cart({
+            _id: identifier.cartId || uuidv4(), // Usa `uuidv4` si no existe `cartId`
+            userId: identifier.userId || null, // Si el usuario está autenticado, usa su `userId`
+            items: [],
+        });
+
+        await cart.save();
+    }
+
+    return cart;
+};
+
+/**
+ * Obtiene el carrito basado en el identificador.
+ */
+const getCart = async (identifier) => {
+    try {
+        const cart = await findOrCreateCart(identifier);
         return {
             statusCode: 200,
             message: 'Carrito obtenido correctamente',
@@ -53,32 +67,31 @@ const getCart = async (userId) => {
 
 /**
  * Agrega un producto al carrito.
- * Si el producto ya existe, actualiza la cantidad.
  */
-const addItemToCart = async (userId, { id, quantity, name, price, image, description }) => {
+const addItemToCart = async (identifier, product) => {
     try {
-        const product = await Product.findById(id);
-        if (!product) {
+        const { id, quantity = 1 } = product;
+
+        // Busca o crea el carrito para el usuario
+        const cart = await findOrCreateCart(identifier);
+
+        // Verifica si el producto ya existe en el carrito
+        const itemExists = cart.items.some((item) => item.id.equals(id));
+
+        if (itemExists) {
+            // Si el producto ya existe, no lo agrega de nuevo
             return {
-                statusCode: 404,
-                message: 'Producto no encontrado',
+                statusCode: 400,
+                message: 'El producto ya existe en el carrito. Use el endpoint de actualización.',
             };
         }
 
-        let cart = await Cart.findOne({ userId });
-        if (!cart) {
-            cart = new Cart({ userId, items: [] });
-        }
+        // Agrega el nuevo producto con la cantidad especificada o por defecto 1
+        cart.items.push({ ...product, quantity });
 
-        const itemIndex = cart.items.findIndex((item) => item.id.equals(id));
-        if (itemIndex > -1) {
-            cart.items[itemIndex].quantity += quantity; // Actualiza la cantidad
-        } else {
-            cart.items.push({ id, quantity, name, price, image, description });
-        }
-
+        // Guarda el carrito y lo actualiza
         await cart.save();
-        const updatedCart = await Cart.findOne({ userId }).populate('items.id');
+        const updatedCart = await Cart.findById(cart._id).populate('items.id');
 
         return {
             statusCode: 200,
@@ -97,17 +110,11 @@ const addItemToCart = async (userId, { id, quantity, name, price, image, descrip
 /**
  * Actualiza la cantidad de un producto en el carrito.
  */
-const updateCartItem = async (userId, id, quantity) => {
+const updateCartItem = async (identifier, id, quantity) => {
     try {
-        const cart = await Cart.findOne({ userId });
-        if (!cart) {
-            return {
-                statusCode: 404,
-                message: 'Carrito no encontrado',
-            };
-        }
-
+        const cart = await findOrCreateCart(identifier);
         const itemIndex = cart.items.findIndex((item) => item.id.equals(id));
+
         if (itemIndex === -1) {
             return {
                 statusCode: 404,
@@ -115,9 +122,9 @@ const updateCartItem = async (userId, id, quantity) => {
             };
         }
 
-        cart.items[itemIndex].quantity = quantity; // Actualiza la cantidad
+        cart.items[itemIndex].quantity = quantity;
         await cart.save();
-        const updatedCart = await Cart.findOne({ userId }).populate('items.id');
+        const updatedCart = await Cart.findById(cart._id).populate('items.id');
 
         return {
             statusCode: 200,
@@ -136,27 +143,12 @@ const updateCartItem = async (userId, id, quantity) => {
 /**
  * Elimina un producto del carrito.
  */
-const removeItemFromCart = async (userId, id) => {
+const removeItemFromCart = async (identifier, id) => {
     try {
-        const cart = await Cart.findOne({ userId });
-        if (!cart) {
-            return {
-                statusCode: 404,
-                message: 'Carrito no encontrado',
-            };
-        }
-
-        const itemIndex = cart.items.findIndex((item) => item.id.equals(id));
-        if (itemIndex === -1) {
-            return {
-                statusCode: 404,
-                message: 'Producto no encontrado en el carrito',
-            };
-        }
-
-        cart.items.splice(itemIndex, 1); // Elimina el producto del carrito
+        const cart = await findOrCreateCart(identifier);
+        cart.items = cart.items.filter((item) => !item.id.equals(id));
         await cart.save();
-        const updatedCart = await Cart.findOne({ userId }).populate('items.id');
+        const updatedCart = await Cart.findById(cart._id).populate('items.id');
 
         return {
             statusCode: 200,
@@ -175,23 +167,16 @@ const removeItemFromCart = async (userId, id) => {
 /**
  * Limpia todos los productos del carrito.
  */
-const clearCart = async (userId) => {
+const clearCart = async (identifier) => {
     try {
-        const cart = await Cart.findOne({ userId });
-        if (!cart) {
-            return {
-                statusCode: 404,
-                message: 'Carrito no encontrado',
-            };
-        }
-
-        cart.items = []; // Limpia todos los productos del carrito
+        const cart = await findOrCreateCart(identifier);
+        cart.items = [];
         await cart.save();
 
         return {
             statusCode: 200,
             message: 'Carrito limpiado correctamente',
-            data: formatCart(cart), // Devuelve el carrito vacío formateado
+            data: formatCart(cart),
         };
     } catch (error) {
         console.error(error);
