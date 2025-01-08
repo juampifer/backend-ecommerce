@@ -66,11 +66,16 @@ Iniciar el servidor
 - **DELETE** `/products/:id`: Elimina un producto.
 
 ### Cart
-- **GET** `/cart/:userId`: Obtiene el carrito del usuario.
-- **POST** `/cart/:userId`: Agrega un item al carrito.
-- **PUT** `/cart/:userId`: Actualiza la cantidad de un ítem.
-- **DELETE** `/cart/:userId`: Elimina un producto.
-- **DELETE** `/cart/:userId/clearCart`: Limpia el carrito.
+- **GET** `/cart`: Obtiene el carrito del usuario.
+- **POST** `/cart`: Agrega un item al carrito.
+- **PUT** `/cart`: Actualiza la cantidad de un ítem.
+- **DELETE** `/cart`: Elimina un producto.
+- **DELETE** `/cart/clearCart`: Limpia el carrito.
+
+### Categorias
+- **GET** `/categories`: Obtiene todas las categorias.
+- **POST** `/categories`: Agrega una categoria.
+- **PUT** `/categories/:id`: Actualiza una categoria.
 
 ## Estructura del Proyecto
 
