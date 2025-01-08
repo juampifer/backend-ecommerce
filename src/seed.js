@@ -1,11 +1,20 @@
 const mongoose = require("mongoose");
 const Category = require("./models/category.model");
 const Product = require("./models/product.model");
-const CartItem = require("./models/cartItem.model");
 
 require("dotenv").config();
 // Acceso al enlace de conexion
 const DATABASE = process.env.MONGO_URI;
+
+// Función para normalizar texto eliminando tildes
+const normalizeText = (text) => {
+  return text
+    .normalize("NFD") // Descompone caracteres Unicode
+    .replace(/[\u0300-\u036f]/g, "") // Elimina marcas diacríticas (tildes)
+    .toLowerCase() // Convierte a minúsculas
+    .replace(/[^a-z0-9]+/g, "-") // Reemplaza caracteres no alfanuméricos por guiones
+    .replace(/^-+|-+$/g, ""); // Elimina guiones al principio o al final
+};
 
 const seedDatabase = async () => {
   try {
@@ -21,25 +30,31 @@ const seedDatabase = async () => {
     // Eliminar datos existentes
     await Category.deleteMany({});
     await Product.deleteMany({});
-    await CartItem.deleteMany({});
 
+    console.log("categorias")
     // Categorías
     const categories = [
-      { categoryName: "Notebooks" },
-      { categoryName: "Placa de Video" },
-      { categoryName: "Periféricos" },
-      { categoryName: "PC Gamers" },
+      { name: "Notebooks", description: "Portátiles para trabajo y ocio", order: 1 },
+      { name: "Placa de Video", description: "Tarjetas gráficas de alto rendimiento", order: 2 },
+      { name: "Periféricos", description: "Accesorios esenciales para tu setup", order: 3 },
+      { name: "PC Gamers", description: "Computadoras diseñadas para gaming", order: 4 },
     ];
 
     // Insertar categorías
-    const categoryDocs = await Category.insertMany(categories);
+    const categoryDocs = await Category.insertMany(
+      categories.map((category) => ({
+        ...category,
+        slug: normalizeText(category.name), // Genera el slug con normalización
+      }))
+    );
+
     console.log("Categories inserted:", categoryDocs);
 
     // Productos
     const categoriesFromDb = await Category.find();
     const products = [
       {
-        categoryId: categoriesFromDb.find((c) => c.categoryName === "PC Gamers")
+        categoryId: categoriesFromDb.find((c) => c.name === "PC Gamers")
           ._id,
         name: "Pc Gamer",
         description: "AMD Ryzen 7 5700G + 16GB (2x8GB) 3200Mhz + Radeon VEGA",
@@ -49,7 +64,7 @@ const seedDatabase = async () => {
       },
       {
         categoryId: categoriesFromDb.find(
-          (c) => c.categoryName === "Periféricos"
+          (c) => c.name === "Periféricos"
         )._id,
         name: "Silla Gamer",
         description: "Soporta hasta 90kg.Almohadillas apoya cervical y lumbar.",
@@ -59,7 +74,7 @@ const seedDatabase = async () => {
       },
       {
         categoryId: categoriesFromDb.find(
-          (c) => c.categoryName === "Periféricos"
+          (c) => c.name === "Periféricos"
         )._id,
         name: "Monitor Gamer",
         description: "Cooler Master GA241 24 100Hz 1Ms VA Adaptive Sync",
@@ -69,7 +84,7 @@ const seedDatabase = async () => {
       },
       {
         categoryId: categoriesFromDb.find(
-          (c) => c.categoryName === "Placa de Video"
+          (c) => c.name === "Placa de Video"
         )._id,
         name: "Placa de Video",
         description: "Gigabyte Radeon RX 6500 XT EAGLE 4Gb GDDR6",
@@ -78,7 +93,7 @@ const seedDatabase = async () => {
           "https://s3-sa-east-1.amazonaws.com/saasargentina/eTOKGh3anBvEu6GiBHRk/imagen",
       },
       {
-        categoryId: categoriesFromDb.find((c) => c.categoryName === "Notebooks")
+        categoryId: categoriesFromDb.find((c) => c.name === "Notebooks")
           ._id,
         name: "Notebook Enova",
         description: "Celeron N4020 4Gb Ssd 128Gb 14 Win11",
@@ -88,7 +103,7 @@ const seedDatabase = async () => {
       },
       {
         categoryId: categoriesFromDb.find(
-          (c) => c.categoryName === "Placa de Video"
+          (c) => c.name === "Placa de Video"
         )._id,
         name: "Placa de Video",
         description: "GeForce GT 1030 4Gb Msi Oc Low Profile",
@@ -97,7 +112,7 @@ const seedDatabase = async () => {
           "https://mexx-img-2019.s3.amazonaws.com/Placa-De-Video-GeForce-GT-1030-4Gb-Msi-Oc-Low-Profile_47943_1.jpeg",
       },
       {
-        categoryId: categoriesFromDb.find((c) => c.categoryName === "Notebooks")
+        categoryId: categoriesFromDb.find((c) => c.name === "Notebooks")
           ._id,
         name: "Notebook Daewoo",
         description: "M15 Core i5 8Gb Ssd 512b 15.6 Win 11",
@@ -106,7 +121,7 @@ const seedDatabase = async () => {
       },
       {
         categoryId: categoriesFromDb.find(
-          (c) => c.categoryName === "Periféricos"
+          (c) => c.name === "Periféricos"
         )._id,
         name: "Teclado",
         description: "Logitech Pebble Keys 2 K380S Inalámbrico",
@@ -115,7 +130,7 @@ const seedDatabase = async () => {
           "https://mexx-img-2019.s3.amazonaws.com/Teclado-Logitech-Pebble-Keys-2-K380S-Inalambrico_47065_1.jpeg",
       },
       {
-        categoryId: categoriesFromDb.find((c) => c.categoryName === "PC Gamers")
+        categoryId: categoriesFromDb.find((c) => c.name === "PC Gamers")
           ._id,
         name: "Pc Gamer",
         description: "Intel Core i5 10400-H510-8Gb-Ssd 960GB-KIT",
@@ -125,7 +140,7 @@ const seedDatabase = async () => {
       },
       {
         categoryId: categoriesFromDb.find(
-          (c) => c.categoryName === "Periféricos"
+          (c) => c.name === "Periféricos"
         )._id,
         name: "Silla Gamer",
         description: "Corsair TC100 Relaxed Polipiel Negro 45 cm-52 cm",
@@ -136,7 +151,7 @@ const seedDatabase = async () => {
       },
       {
         categoryId: categoriesFromDb.find(
-          (c) => c.categoryName === "Periféricos"
+          (c) => c.name === "Periféricos"
         )._id,
         name: "Escáner",
         description: "Brother Desktop ADS-1250W Wireless 802.11 b/g/n",
@@ -147,7 +162,7 @@ const seedDatabase = async () => {
       },
       {
         categoryId: categoriesFromDb.find(
-          (c) => c.categoryName === "Placa de Video"
+          (c) => c.name === "Placa de Video"
         )._id,
         name: "Placa de Video",
         description: "GeForce RTX 4060 Ti 8Gb Gigabyte Eagle Oc",
@@ -157,7 +172,7 @@ const seedDatabase = async () => {
           "https://mexx-img-2019.s3.amazonaws.com/Placa-Video-GeForce-RTX-4060-Ti-8Gb-Gigabyte-Eagle-Oc_48197_1.jpeg",
       },
       {
-        categoryId: categoriesFromDb.find((c) => c.categoryName === "Notebooks")
+        categoryId: categoriesFromDb.find((c) => c.name === "Notebooks")
           ._id,
         name: "Notebook Gfast",
         description: "N-140-W Celeron N4020 4Gb Ssd 128Gb 14 Win11",

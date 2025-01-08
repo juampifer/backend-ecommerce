@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const productRoutes = require('../routes/product.routes');
 const cartRoutes = require('../routes/cart.routes');
+const categoryRoutes = require('../routes/category.routes');
 const cookieParser = require('cookie-parser');
 
 // Configurar el servidor
@@ -28,6 +29,7 @@ server.get('/', (request, response) => {
 
 // Ejecutar los routers
 server.use('/products', productRoutes);
-server.use('/cart', cartRoutes )
+server.use('/cart', cartRoutes);
+server.use('/categories', categoryRoutes);
 
 module.exports = server;
