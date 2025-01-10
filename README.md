@@ -1,6 +1,6 @@
 # Carrito de Compras - Backend
 
-Este proyecto es el backend de un sistema de carrito de compras, desarrollado con Node.js, Express.js y MongoDB. Proporciona una API RESTful para gestionar productos, usuarios, y pedidos.
+Este proyecto es el backend de un sistema de carrito de compras, desarrollado con Node.js, Express.js y MongoDB. Proporciona una API RESTful para gestionar productos, carrito de compras y categorías.
 
 ## Tabla de Contenidos
 - [Características](#características)
@@ -13,7 +13,7 @@ Este proyecto es el backend de un sistema de carrito de compras, desarrollado co
 ---
 
 ## Características
-- CRUD para productos.
+- CRUD para productos, carrito y categorías.
 - Integración con MongoDB para persistencia de datos.
 - API RESTful siguiendo las mejores prácticas.
 - Código modular y organizado con separación de responsabilidades.
@@ -37,11 +37,10 @@ Asegúrate de tener instalados los siguientes programas:
     ```bash
     npm install
 3.	Configura las variables de entorno:
-    Crea un archivo .env en la raíz del proyecto con el siguiente contenido:
+    Renombra el archivo .env.example a .env en la raíz del proyecto y configura las variables según tu entorno:
     ```env
-    MONGO_URI=mongodb://localhost:27017/carrito-db
+    MONGO_URI=# URL de la base de datos mongoDB
     PORT=5000
-    JWT_SECRET=tuClaveSecreta
 4.	Llena la base de datos:
     ```bash
     npm run seed
