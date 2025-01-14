@@ -4,7 +4,7 @@ const {
     validateCreateCategory,
     validateUpdateCategory,
   } = require('../validators/category.validator');
-const handleValidationErrors = require('../middlewares/handleValidationErrors');
+const handleValidationErrors = require('../middlewares/handleValidationErrors.middleware');
 const categoryController = require("../controllers/category.controller");
 
 router.get("/", categoryController.getAllCategories);
