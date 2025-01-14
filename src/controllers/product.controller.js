@@ -1,27 +1,34 @@
 const productService = require('../services/product.service');
 
+const handleResponse = (res, response) => {
+    res.status(response.statusCode).json({
+      message: response.message,
+      data: response.data || null,
+    });
+  };
+
 // Obtener todos los productos
 const getAllProducts = async (req, res) => {
     const response = await productService.getAllProducts(req);
-    res.status(response.statusCode).json({ message: response.message, data: response.data });
+    handleResponse(res, response);
 };
 
 // Obtener un producto por ID
 const getProductById = async (req, res) => {
     const response = await productService.getProductById(req.params.id);
-    res.status(response.statusCode).json({ message: response.message, data: response.data });
+    handleResponse(res, response);
 };
 
 // Crear un nuevo producto
 const createProduct = async (req, res) => {
     const response = await productService.createProduct(req.body);
-    res.status(response.statusCode).json({ message: response.message, data: response.data });
+    handleResponse(res, response);
 };
 
 // Actualizar un producto
 const updateProduct = async (req, res) => {
     const response = await productService.updateProduct(req.params.id, req.body);
-    res.status(response.statusCode).json({ message: response.message, data: response.data });
+    handleResponse(res, response);
 };
 
 // Eliminar un producto
