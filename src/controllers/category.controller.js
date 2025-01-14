@@ -1,11 +1,5 @@
 const categoryService = require("../services/category.service");
-
-const handleResponse = (res, response) => {
-  res.status(response.statusCode).json({
-    message: response.message,
-    data: response.data || null,
-  });
-};
+const { handleResponse } = require("../utils/controller.utils");
 
 // Obtener todas las categorías
 const getAllCategories = async (req, res) => {
@@ -21,7 +15,10 @@ const createCategory = async (req, res) => {
 
 // Actualizar una categoría
 const updateCategory = async (req, res) => {
-  const response = await categoryService.updateCategory(req.params.id, req.body);
+  const response = await categoryService.updateCategory(
+    req.params.id,
+    req.body
+  );
   handleResponse(res, response);
 };
 

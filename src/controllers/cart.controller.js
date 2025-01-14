@@ -1,18 +1,8 @@
 const cartService = require("../services/cart.service");
-
-const handleResponse = (res, response) => {
-  res.status(response.statusCode).json({
-    message: response.message,
-    data: response.data || null,
-  });
-};
-
-// Obtener el identificador del carrito basado en la autenticación.
-const getCartIdentifier = (req) => {
-  const userId = req.user?.id; // Usuario autenticado
-  const cartId = req.cookies.cartId; // Usuario no autenticado
-  return userId ? { userId } : { cartId };
-};
+const {
+  handleResponse,
+  getCartIdentifier,
+} = require("../utils/controller.utils");
 
 // Obtener el carrito
 const getCart = async (req, res) => {
