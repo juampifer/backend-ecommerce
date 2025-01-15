@@ -1,15 +1,25 @@
 const Product = require('../models/product.model');
+const Category = require('../models/category.model');
 
 // Obtener todos los productos
 const getAllProducts = async (req) => {
     try {
         // Obtener el parámetro de consulta
-        const { categoryId } = req.query;
+        const { slug } = req.query;
+        let filter = {};
 
-        // Construir un filtro dinámico
-        const filter = {};
-        if (categoryId) {
-            filter.categoryId = categoryId;
+        if (slug) {
+            // Buscar la categoría por slug
+            const category = await Category.findOne({ slug });
+            if (!category) {
+                return {
+                    statusCode: 404,
+                    message: 'Categoría no encontrada',
+                };
+            }
+
+            // Usar el _id de la categoría para filtrar productos
+            filter = { categoryId: category._id };
         }
 
         // Consultar los productos con el filtro
@@ -20,7 +30,7 @@ const getAllProducts = async (req) => {
             data: products,
         };
     } catch (error) {
-        console.log(error)
+        console.error(error);
         return {
             statusCode: 500,
             message: 'Error al obtener los productos',
